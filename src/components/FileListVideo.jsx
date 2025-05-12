@@ -1,18 +1,28 @@
 import React, { useEffect, useState } from 'react';
-import { Play } from 'lucide-react';
+import { columns as generateColumns } from '../components/columns';
+import { DataTable } from '@/components/data-table';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 
 const FileListVideo = () => {
   const [files, setFiles] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null); // Estado para el archivo seleccionado
+  const [selectedFile, setSelectedFile] = useState(null);
 
   const fetchFiles = async (page) => {
     setLoading(true);
     try {
       const response = await fetch(
-        `https://api-drive-demo-production.up.railway.app/api/files?page=${page}&limit=100&extension=mp4`
+        `https://api-drive-demo-production.up.railway.app/api/files?page=${page}&limit=50&extension=mp4`
       );
       const data = await response.json();
       setFiles(data.files);
@@ -36,87 +46,95 @@ const FileListVideo = () => {
   };
 
   const handlePlay = (file) => {
-    setSelectedFile(file); // Cuando seleccionas un archivo, lo estableces como el archivo seleccionado
+    setSelectedFile(file);
+  };
+
+  const getPageItems = () => {
+    const maxPagesToShow = 5; // Max number of pages to show before and after the current page
+    let pages = [];
+
+    // Display pages before and after the current page
+    for (let i = 1; i <= totalPages; i++) {
+      if (
+        i <= maxPagesToShow ||
+        i >= totalPages - maxPagesToShow ||
+        (i >= currentPage - Math.floor(maxPagesToShow / 2) &&
+          i <= currentPage + Math.floor(maxPagesToShow / 2))
+      ) {
+        pages.push(i);
+      }
+    }
+
+    return pages;
   };
 
   return (
-    <div className='p-4 flex flex-col items-center mx-auto max-w-4xl'>
-      <h2 className='text-xl font-bold mb-4'>Contenido</h2>
+    <div className='p-4 flex flex-col items-center mx-auto w-full'>
+      {/* <h2 className='text-xl font-bold mb-4'>Contenido</h2> */}
 
-      {/* Archivos */}
-      <ul className='w-full divide-y divide-gray-200 dark:divide-gray-700'>
-        {files.map((file) => (
-          <li key={file.id} className='py-2'>
-            <div className='flex justify-between items-center'>
-              <div>
-                <p className='font-bold'>{file.name}</p>
-                <p className='font-normal text-sm text-gray-500 pt-2'>
-                  {file.folderName}
-                </p>
-              </div>
+      <DataTable
+        columns={generateColumns(handlePlay)}
+        data={files}
+        loading={loading}
+      />
 
-              <button
-                onClick={() => handlePlay(file)} // Al hacer clic, selecciona el archivo
-                className='p-2 rounded-full hover:bg-muted transition'
-                title='Reproducir'
+      {/* Reproductor de video */}
+      {selectedFile && (
+        <div className='mt-6 w-full'>
+          <h3 className='text-lg font-semibold mb-2'>
+            Reproduciendo: {selectedFile.name}
+          </h3>
+          <video controls autoPlay className='w-full rounded-lg shadow'>
+            <source
+              src={`https://api-drive-demo-production.up.railway.app/api/cloud/preview/${selectedFile.fileId}`}
+              type='video/mp4'
+            />
+            Tu navegador no soporta el video.
+          </video>
+        </div>
+      )}
+
+      <Pagination>
+        <PaginationContent className='mt-4 flex justify-center items-center gap-2'>
+          <PaginationItem>
+            <PaginationPrevious
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+            />
+          </PaginationItem>
+
+          {/* Páginas anteriores y actuales */}
+          {getPageItems().map((page) => (
+            <PaginationItem key={page}>
+              <PaginationLink
+                href='#'
+                onClick={() => handlePageChange(page)}
+                className={`px-3 py-1 rounded ${
+                  currentPage === page
+                    ? 'bg-primary text-white'
+                    : 'bg-muted text-muted-foreground'
+                }`}
               >
-                <Play className='w-5 h-5 text-primary' />
-              </button>
-            </div>
-
-            {/* Reproductor solo se muestra si este es el archivo seleccionado */}
-            {selectedFile &&
-              selectedFile.id === file.id &&
-              (console.log('file id ', file.id),
-              (
-                <div className='mt-4 w-full'>
-                  <video controls autoPlay>
-                    <source
-                      src={`https://api-drive-demo-production.up.railway.app/api/cloud/preview/${file.fileId}`}
-                      type='audio/mp3'
-                    />
-                    Tu navegador no soporta el elemento de video.
-                  </video>
-                </div>
-              ))}
-          </li>
-        ))}
-      </ul>
-
-      {/* Paginación con múltiples líneas */}
-      <div className='mt-4 w-full'>
-        <div className='flex flex-wrap justify-center gap-2'>
-          <button
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            className='px-3 py-1 bg-muted text-muted-foreground rounded disabled:opacity-50'
-          >
-            Anterior
-          </button>
-
-          {Array.from({ length: totalPages }, (_, index) => (
-            <button
-              key={index + 1}
-              onClick={() => handlePageChange(index + 1)}
-              className={`px-3 py-1 rounded ${
-                currentPage === index + 1
-                  ? 'bg-primary text-white'
-                  : 'bg-muted text-muted-foreground'
-              }`}
-            >
-              {index + 1}
-            </button>
+                {page}
+              </PaginationLink>
+            </PaginationItem>
           ))}
 
-          <button
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className='px-3 py-1 bg-muted text-muted-foreground rounded disabled:opacity-50'
-          >
-            Siguiente
-          </button>
-        </div>
-      </div>
+          {/* Puntos suspensivos si hay más de 5 páginas */}
+          {totalPages > 10 && currentPage < totalPages - 2 && (
+            <PaginationItem>
+              <PaginationEllipsis />
+            </PaginationItem>
+          )}
+
+          <PaginationItem>
+            <PaginationNext
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
     </div>
   );
 };
