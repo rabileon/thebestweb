@@ -73,13 +73,13 @@ const FileListVideo = () => {
       {/* <h2 className='text-xl font-bold mb-4'>Contenido</h2> */}
 
       <DataTable
-        columns={generateColumns(handlePlay)}
+        columns={generateColumns(handlePlay, selectedFile)}
         data={files}
         loading={loading}
       />
 
       {/* Reproductor de video */}
-      {selectedFile && (
+      {/* {selectedFile && (
         <div className='mt-6 w-full'>
           <h3 className='text-lg font-semibold mb-2'>
             Reproduciendo: {selectedFile.name}
@@ -92,7 +92,7 @@ const FileListVideo = () => {
             Tu navegador no soporta el video.
           </video>
         </div>
-      )}
+      )} */}
 
       <Pagination>
         <PaginationContent className='mt-4 flex justify-center items-center gap-2'>

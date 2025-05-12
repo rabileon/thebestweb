@@ -3,12 +3,34 @@ import { Play, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import moment from 'moment';
 
-export const columns = (onPlay) => [
+export const columns = (handlePlay, selectedFile) => [
   {
     accessorKey: 'name',
-    header: 'Nombre',
-    cell: ({ row }) => <div className='font-medium'>{row.original.name}</div>,
+    header: 'Nombre del archivo',
+    cell: ({ row }) => {
+      const file = row.original;
+      const isSelected = selectedFile?.fileId === file.fileId;
+
+      return (
+        <div className='space-y-2'>
+          <button onClick={() => handlePlay(file)} className=' hover:underline'>
+            {file.name}
+          </button>
+
+          {isSelected && (
+            <video
+              controls
+              autoPlay
+              className='w-full mt-4 rounded-2xl shadow-lg ring-1 ring-gray-300 dark:ring-gray-600 transition-all duration-300 hover:ring-primary focus:outline-none'
+              src={`https://api-drive-demo-production.up.railway.app/api/cloud/preview/${file.fileId}`}
+              onEnded={() => handlePlay(null)}
+            />
+          )}
+        </div>
+      );
+    },
   },
+
   {
     accessorKey: 'folderName',
     header: 'Género',
@@ -18,7 +40,7 @@ export const columns = (onPlay) => [
   },
   {
     accessorKey: 'dateModifiedFile',
-    header: 'Fecha de actualización',
+    header: 'Fecha',
     cell: ({ row }) => (
       <div className='text-muted-foreground'>
         {moment(row.original.dateModifiedFile).format('DD/MMM/YYYY HH:mm')}
@@ -48,7 +70,7 @@ export const columns = (onPlay) => [
           <Button
             variant='ghost'
             size='icon'
-            onClick={() => onPlay(file)}
+            onClick={() => handlePlay(file)}
             title='Reproducir'
           >
             <Play className='w-5 h-5 text-primary' />
