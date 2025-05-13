@@ -16,7 +16,7 @@ import {
   IconSearch,
   IconSettings,
   IconUsers,
-  IconMusic,
+  IconVinyl,
 } from '@tabler/icons-react';
 
 import { NavDocuments } from '@/components/nav-documents';
@@ -160,11 +160,12 @@ export function AppSidebar({ ...props }) {
     const fetchGenres = async () => {
       try {
         const response = await axios.get('/files/getGenres'); // ajusta a tu ruta real
-        console.log('response', response);
+
         const genres = response.data.generos || response.data; // según cómo lo envíes
 
         const genreItems = genres.map((genre) => ({
           title: genre.name,
+          icon: IconVinyl,
         }));
 
         setNavMain((prev) => [...prev, ...genreItems]);

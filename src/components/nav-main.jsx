@@ -8,8 +8,10 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { useGenre } from '@/context/GenreContext';
 
 export function NavMain({ items }) {
+  const { setSelectedGenre } = useGenre();
   return (
     <SidebarGroup>
       <SidebarGroupContent className='flex flex-col gap-2'>
@@ -31,9 +33,12 @@ export function NavMain({ items }) {
           </SidebarMenuItem>
         </SidebarMenu> */}
         <SidebarMenu>
-          {items.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton tooltip={item.title}>
+          {items.map((item, index) => (
+            <SidebarMenuItem key={index}>
+              <SidebarMenuButton
+                tooltip={item.title}
+                onClick={() => setSelectedGenre(item.title)}
+              >
                 {item.icon && <item.icon />}
                 <span>{item.title}</span>
               </SidebarMenuButton>

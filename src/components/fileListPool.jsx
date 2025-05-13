@@ -10,24 +10,33 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
+import { useGenre } from '@/context/GenreContext';
+import axios from '../api/axios';
 
-const FileListVideo = () => {
+export function FileListPool() {
+  const { selectedGenre } = useGenre();
   const [files, setFiles] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
 
-  const fetchFiles = async (page) => {
+  const fetchFiles = async (page, genre) => {
     setLoading(true);
     try {
-      const response = await fetch(
-        `https://api-drive-demo-production.up.railway.app/api/files?page=${page}&limit=50&extension=mp4`
-      );
-      const data = await response.json();
-      setFiles(data.files);
-      setCurrentPage(data.page);
-      setTotalPages(data.totalPages);
+      const genreParam = genre ? `${genre}` : '';
+
+      const response = await axios.get('/files', {
+        params: {
+          page: page,
+          limit: 50,
+          genre: genre,
+        },
+      });
+
+      setFiles(response.data.files);
+      setCurrentPage(response.data.page);
+      setTotalPages(response.data.totalPages);
     } catch (error) {
       console.error('Error fetching files:', error);
     } finally {
@@ -36,8 +45,8 @@ const FileListVideo = () => {
   };
 
   useEffect(() => {
-    fetchFiles(currentPage);
-  }, [currentPage]);
+    fetchFiles(currentPage, selectedGenre);
+  }, [currentPage, selectedGenre]);
 
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
@@ -137,6 +146,4 @@ const FileListVideo = () => {
       </Pagination>
     </div>
   );
-};
-
-export default FileListVideo;
+}
