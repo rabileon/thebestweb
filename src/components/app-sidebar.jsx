@@ -1,4 +1,5 @@
-import * as React from "react"
+import * as React from 'react';
+import logo from '../assets/thebestmix_logo.png'; // ajusta la ruta si estás en otra carpeta
 import {
   IconCamera,
   IconChartBar,
@@ -15,12 +16,13 @@ import {
   IconSearch,
   IconSettings,
   IconUsers,
-} from "@tabler/icons-react"
+  IconMusic,
+} from '@tabler/icons-react';
 
-import { NavDocuments } from "@/components/nav-documents"
-import { NavMain } from "@/components/nav-main"
-import { NavSecondary } from "@/components/nav-secondary"
-import { NavUser } from "@/components/nav-user"
+import { NavDocuments } from '@/components/nav-documents';
+import { NavMain } from '@/components/nav-main';
+import { NavSecondary } from '@/components/nav-secondary';
+import { NavUser } from '@/components/nav-user';
 import {
   Sidebar,
   SidebarContent,
@@ -29,146 +31,167 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from '@/components/ui/sidebar';
+import { useState } from 'react';
+import { useEffect } from 'react';
+import axios from '../api/axios'; // Asegúrate de que la ruta sea correcta
 
 const data = {
   user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
+    name: 'shadcn',
+    email: 'm@example.com',
+    avatar: '/avatars/shadcn.jpg',
   },
   navMain: [
     {
-      title: "Dashboard",
-      url: "#",
+      title: 'Dashboard',
+      url: '#',
       icon: IconDashboard,
     },
     {
-      title: "Lifecycle",
-      url: "#",
+      title: 'Lifecycle',
+      url: '#',
       icon: IconListDetails,
     },
     {
-      title: "Analytics",
-      url: "#",
+      title: 'Analytics',
+      url: '#',
       icon: IconChartBar,
     },
     {
-      title: "Projects",
-      url: "#",
+      title: 'Projects',
+      url: '#',
       icon: IconFolder,
     },
     {
-      title: "Team",
-      url: "#",
+      title: 'Team',
+      url: '#',
       icon: IconUsers,
     },
   ],
   navClouds: [
     {
-      title: "Capture",
+      title: 'Capture',
       icon: IconCamera,
       isActive: true,
-      url: "#",
+      url: '#',
       items: [
         {
-          title: "Active Proposals",
-          url: "#",
+          title: 'Active Proposals',
+          url: '#',
         },
         {
-          title: "Archived",
-          url: "#",
+          title: 'Archived',
+          url: '#',
         },
       ],
     },
     {
-      title: "Proposal",
+      title: 'Proposal',
       icon: IconFileDescription,
-      url: "#",
+      url: '#',
       items: [
         {
-          title: "Active Proposals",
-          url: "#",
+          title: 'Active Proposals',
+          url: '#',
         },
         {
-          title: "Archived",
-          url: "#",
+          title: 'Archived',
+          url: '#',
         },
       ],
     },
     {
-      title: "Prompts",
+      title: 'Prompts',
       icon: IconFileAi,
-      url: "#",
+      url: '#',
       items: [
         {
-          title: "Active Proposals",
-          url: "#",
+          title: 'Active Proposals',
+          url: '#',
         },
         {
-          title: "Archived",
-          url: "#",
+          title: 'Archived',
+          url: '#',
         },
       ],
     },
   ],
   navSecondary: [
     {
-      title: "Settings",
-      url: "#",
+      title: 'Settings',
+      url: '#',
       icon: IconSettings,
     },
     {
-      title: "Get Help",
-      url: "#",
+      title: 'Get Help',
+      url: '#',
       icon: IconHelp,
     },
     {
-      title: "Search",
-      url: "#",
+      title: 'Search',
+      url: '#',
       icon: IconSearch,
     },
   ],
   documents: [
     {
-      name: "Data Library",
-      url: "#",
+      name: 'Data Library',
+      url: '#',
       icon: IconDatabase,
     },
     {
-      name: "Reports",
-      url: "#",
+      name: 'Reports',
+      url: '#',
       icon: IconReport,
     },
     {
-      name: "Word Assistant",
-      url: "#",
+      name: 'Word Assistant',
+      url: '#',
       icon: IconFileWord,
     },
   ],
-}
+};
 
-export function AppSidebar({
-  ...props
-}) {
+export function AppSidebar({ ...props }) {
+  const [navMain, setNavMain] = useState([]);
+
+  useEffect(() => {
+    const fetchGenres = async () => {
+      try {
+        const response = await axios.get('/files/getGenres'); // ajusta a tu ruta real
+        console.log('response', response);
+        const genres = response.data.generos || response.data; // según cómo lo envíes
+
+        const genreItems = genres.map((genre) => ({
+          title: genre.name,
+        }));
+
+        setNavMain((prev) => [...prev, ...genreItems]);
+      } catch (error) {
+        console.error('Error cargando géneros:', error);
+      }
+    };
+
+    fetchGenres();
+  }, []); // Solo se ejecuta una vez al montar el componente
   return (
-    <Sidebar collapsible="offcanvas" {...props}>
+    <Sidebar collapsible='offcanvas' {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
-              <a href="#">
-                <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">Acme Inc.</span>
+            <div className='p-4 flex justify-center items-center'>
+              <a href='/'>
+                <img src={logo} alt='Logo' className='h-12 w-auto' />
               </a>
-            </SidebarMenuButton>
+            </div>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        <NavMain items={navMain} />
+        {/* <NavDocuments items={navMain} /> */}
+        {/* <NavSecondary items={data.navSecondary} className='mt-auto' /> */}
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />
