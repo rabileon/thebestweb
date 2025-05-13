@@ -6,25 +6,48 @@ import moment from 'moment';
 export const columns = (handlePlay, selectedFile) => [
   {
     accessorKey: 'name',
-    header: 'Nombre del archivo',
+    header: 'Nombre',
     cell: ({ row }) => {
       const file = row.original;
       const isSelected = selectedFile?.fileId === file.fileId;
+      const fileUrl = `https://api-drive-demo-production.up.railway.app/api/cloud/preview/${file.fileId}`;
+
+      const extension = file.extension?.toLowerCase(); // Aseguramos minúsculas
+      const isAudio = ['mp3', 'wav'].includes(extension);
+      const isVideo = ['mp4', 'webm'].includes(extension);
 
       return (
         <div className='space-y-2'>
-          <button onClick={() => handlePlay(file)} className=' hover:underline'>
+          <button onClick={() => handlePlay(file)} className='hover:underline'>
             {file.name}
           </button>
 
           {isSelected && (
-            <video
-              controls
-              autoPlay
-              className='w-full mt-4 rounded-2xl shadow-lg ring-1 ring-gray-300 dark:ring-gray-600 transition-all duration-300 hover:ring-primary focus:outline-none'
-              src={`https://api-drive-demo-production.up.railway.app/api/cloud/preview/${file.fileId}`}
-              onEnded={() => handlePlay(null)}
-            />
+            <div>
+              {isVideo ? (
+                <div className='w-full mt-4 rounded-2xl shadow-lg ring-1 ring-gray-300 dark:ring-gray-600 transition-all duration-300 hover:ring-primary focus:outline-none'>
+                  <video
+                    controls
+                    autoPlay
+                    src={fileUrl}
+                    className='w-full rounded-2xl'
+                    onEnded={() => handlePlay(null)}
+                  />
+                </div>
+              ) : isAudio ? (
+                <audio
+                  controls
+                  autoPlay
+                  src={fileUrl}
+                  className='w-full'
+                  onEnded={() => handlePlay(null)}
+                />
+              ) : (
+                <div className='text-sm text-muted-foreground'>
+                  Archivo no compatible para vista previa
+                </div>
+              )}
+            </div>
           )}
         </div>
       );
