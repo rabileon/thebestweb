@@ -35,6 +35,7 @@ import {
 import { useState } from 'react';
 import { useEffect } from 'react';
 import axios from '../api/axios'; // Asegúrate de que la ruta sea correcta
+import { useRef } from 'react';
 
 const data = {
   user: {
@@ -155,8 +156,10 @@ const data = {
 
 export function AppSidebar({ ...props }) {
   const [navMain, setNavMain] = useState([]);
-
+  const called = useRef(false);
   useEffect(() => {
+    if (called.current) return;
+    called.current = true;
     const fetchGenres = async () => {
       try {
         const response = await axios.get('/files/getGenres'); // ajusta a tu ruta real
@@ -190,6 +193,7 @@ export function AppSidebar({ ...props }) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
+        {console.log('navMain', navMain)}
         <NavMain items={navMain} />
         {/* <NavDocuments items={navMain} /> */}
         {/* <NavSecondary items={data.navSecondary} className='mt-auto' /> */}

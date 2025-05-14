@@ -1,5 +1,5 @@
 // columns.jsx
-import { Play, Download } from 'lucide-react';
+import { Play, Download, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import moment from 'moment';
 
@@ -25,23 +25,43 @@ export const columns = (handlePlay, selectedFile) => [
           {isSelected && (
             <div>
               {isVideo ? (
-                <div className='w-full mt-4 rounded-2xl shadow-lg ring-1 ring-gray-300 dark:ring-gray-600 transition-all duration-300 hover:ring-primary focus:outline-none'>
+                <div className='relative mt-4 w-full max-w-[480px] rounded-2xl shadow-lg ring-1 ring-gray-300 dark:ring-gray-600 transition-all duration-300 hover:ring-primary'>
+                  {/* Botón de cerrar */}
+                  <button
+                    onClick={() => handlePlay(null)}
+                    className='absolute top-2 right-2 text-gray-500 hover:text-red-600 z-10'
+                  >
+                    <XCircle className='w-6 h-6' />
+                  </button>
+
                   <video
                     controls
                     autoPlay
                     src={fileUrl}
-                    className='w-full rounded-2xl'
+                    className='w-full max-w-[480px] rounded-2xl'
                     onEnded={() => handlePlay(null)}
                   />
                 </div>
               ) : isAudio ? (
-                <audio
-                  controls
-                  autoPlay
-                  src={fileUrl}
-                  className='w-full'
-                  onEnded={() => handlePlay(null)}
-                />
+                <div className='w-full mt-4 flex items-center justify-between gap-4'>
+                  {/* Reproductor de audio */}
+                  <audio
+                    controls
+                    autoPlay
+                    src={fileUrl}
+                    className='w-full'
+                    onEnded={() => handlePlay(null)}
+                  />
+
+                  {/* Botón de cerrar al lado derecho */}
+                  <button
+                    onClick={() => handlePlay(null)}
+                    className='text-gray-500 hover:text-red-600 transition-colors'
+                    title='Cerrar'
+                  >
+                    <XCircle className='w-6 h-6' />
+                  </button>
+                </div>
               ) : (
                 <div className='text-sm text-muted-foreground'>
                   Archivo no compatible para vista previa
