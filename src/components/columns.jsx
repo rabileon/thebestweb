@@ -58,7 +58,7 @@ export const columns = (handlePlay, selectedFile) => [
     accessorKey: 'folderName',
     header: 'Género',
     cell: ({ row }) => (
-      <div className='text-muted-foreground'>{row.original.folderName}</div>
+      <div className='text-muted-foreground'>{row.original.genre}</div>
     ),
   },
   {
