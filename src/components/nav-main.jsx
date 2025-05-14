@@ -11,7 +11,7 @@ import {
 import { useGenre } from '@/context/GenreContext';
 
 export function NavMain({ items }) {
-  const { setSelectedGenre } = useGenre();
+  const { selectedGenre, setSelectedGenre } = useGenre();
   return (
     <SidebarGroup>
       <SidebarGroupContent className='flex flex-col gap-2'>
@@ -36,6 +36,11 @@ export function NavMain({ items }) {
           {items.map((item, index) => (
             <SidebarMenuItem key={index}>
               <SidebarMenuButton
+                className={
+                  selectedGenre === item.title
+                    ? 'bg-primary text-primary-foreground'
+                    : 'hover:bg-muted'
+                }
                 tooltip={item.title}
                 onClick={() => setSelectedGenre(item.title)}
               >

@@ -1,38 +1,47 @@
-import React, { useEffect, useState } from 'react';
-import { columns as generateColumns } from '../components/columns';
+import { useEffect, useRef, useState } from 'react';
+import axios from '../api/axios'; // Asume que tienes un archivo axios.js configurado
+import { PaginationComponent } from '@/components/pagination-component'; // Importar el componente de paginación
 import { DataTable } from '@/components/data-table';
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination';
+import { columns as generateColumns } from '../components/columns';
 import { useGenre } from '@/context/GenreContext';
-import axios from '../api/axios';
+import { Search, X } from 'lucide-react'; // O cualquier icono que uses
 
 export function FileListPool() {
-  const { selectedGenre } = useGenre();
+  const hasRun = useRef(false);
+  const { selectedGenre, setSelectedGenre } = useGenre();
   const [files, setFiles] = useState([]);
+  const [searchTerm, setSearchTerm] = useState(''); // Estado para la búsqueda
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
 
-  const fetchFiles = async (page, genre) => {
+  // Función para hacer la solicitud de archivos (todos o búsqueda)
+  const fetchFiles = async (page, search = '', genre) => {
     setLoading(true);
     try {
-      const genreParam = genre ? `${genre}` : '';
+      let response;
 
-      const response = await axios.get('/files', {
-        params: {
-          page: page,
-          limit: 50,
-          genre: genre,
-        },
-      });
+      if (search) {
+        setSelectedGenre('ALL');
+        // Si hay término de búsqueda, hacer solicitud a /files/search
+        response = await axios.get('/files/searchFiles', {
+          params: {
+            page: page,
+            limit: 50,
+            query: search, // Pasar el término de búsqueda
+          },
+        });
+      } else {
+        // Si no hay búsqueda, obtener los archivos con paginación
+        response = await axios.get('/files', {
+          params: {
+            page: page,
+            limit: 50,
+            genre: genre, // Pasar el género seleccionado
+          },
+        });
+      }
 
       setFiles(response.data.files);
       setCurrentPage(response.data.page);
@@ -44,106 +53,75 @@ export function FileListPool() {
     }
   };
 
+  // Efecto para cargar los archivos cuando se cambie la página o el término de búsqueda
   useEffect(() => {
-    fetchFiles(currentPage, selectedGenre);
-  }, [currentPage, selectedGenre]);
-
-  const handlePageChange = (page) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
+    if (!hasRun.current) {
+      setSelectedGenre('ALL');
+      hasRun.current = true;
     }
+
+    fetchFiles(currentPage, searchTerm, selectedGenre); // Pasar el término de búsqueda si existe
+  }, [currentPage, searchTerm, selectedGenre]);
+
+  // Manejador de cambios en el campo de búsqueda
+  const handleSearchChange = (event) => {
+    setSearchTerm(event.target.value); // Actualizar el término de búsqueda
   };
 
   const handlePlay = (file) => {
     setSelectedFile(file);
   };
 
-  const getPageItems = () => {
-    const maxPagesToShow = 5; // Max number of pages to show before and after the current page
-    let pages = [];
-
-    // Display pages before and after the current page
-    for (let i = 1; i <= totalPages; i++) {
-      if (
-        i <= maxPagesToShow ||
-        i >= totalPages - maxPagesToShow ||
-        (i >= currentPage - Math.floor(maxPagesToShow / 2) &&
-          i <= currentPage + Math.floor(maxPagesToShow / 2))
-      ) {
-        pages.push(i);
-      }
-    }
-
-    return pages;
-  };
-
   return (
     <div className='p-4 flex flex-col items-center mx-auto w-full'>
-      {/* <h2 className='text-xl font-bold mb-4'>Contenido</h2> */}
+      {/* Campo de búsqueda */}
+      <div className='relative w-full mb-4'>
+        <Search
+          className='absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground'
+          size={18}
+        />
+        <input
+          type='text'
+          value={searchTerm}
+          onChange={handleSearchChange}
+          placeholder='Buscar por nombre, artista, remix, género...'
+          className='pl-10 pr-3 py-2 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-primary'
+        />
 
+        {/* Botón para limpiar búsqueda */}
+        {searchTerm && (
+          <button
+            type='button'
+            onClick={() => setSearchTerm('')}
+            className='absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground'
+          >
+            <X size={18} />
+          </button>
+        )}
+      </div>
+
+      {searchTerm.trim() ? (
+        <h2 className='text-xl font-bold mb-4'>
+          Resultados de búsqueda:{' '}
+          <span className='text-muted-foreground'>
+            &quot;{searchTerm}&quot;
+          </span>
+        </h2>
+      ) : (
+        <h2 className='text-xl font-bold mb-4'>{selectedGenre}</h2>
+      )}
       <DataTable
         columns={generateColumns(handlePlay, selectedFile)}
         data={files}
         loading={loading}
       />
 
-      {/* Reproductor de video */}
-      {/* {selectedFile && (
-        <div className='mt-6 w-full'>
-          <h3 className='text-lg font-semibold mb-2'>
-            Reproduciendo: {selectedFile.name}
-          </h3>
-          <video controls autoPlay className='w-full rounded-lg shadow'>
-            <source
-              src={`https://api-drive-demo-production.up.railway.app/api/cloud/preview/${selectedFile.fileId}`}
-              type='video/mp4'
-            />
-            Tu navegador no soporta el video.
-          </video>
-        </div>
-      )} */}
-
-      <Pagination>
-        <PaginationContent className='mt-4 flex justify-center items-center gap-2'>
-          <PaginationItem>
-            <PaginationPrevious
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-            />
-          </PaginationItem>
-
-          {/* Páginas anteriores y actuales */}
-          {getPageItems().map((page) => (
-            <PaginationItem key={page}>
-              <PaginationLink
-                href='#'
-                onClick={() => handlePageChange(page)}
-                className={`px-3 py-1 rounded ${
-                  currentPage === page
-                    ? 'bg-primary text-white'
-                    : 'bg-muted text-muted-foreground'
-                }`}
-              >
-                {page}
-              </PaginationLink>
-            </PaginationItem>
-          ))}
-
-          {/* Puntos suspensivos si hay más de 5 páginas */}
-          {totalPages > 10 && currentPage < totalPages - 2 && (
-            <PaginationItem>
-              <PaginationEllipsis />
-            </PaginationItem>
-          )}
-
-          <PaginationItem>
-            <PaginationNext
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-            />
-          </PaginationItem>
-        </PaginationContent>
-      </Pagination>
+      {/* Paginación */}
+      <PaginationComponent
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 }
